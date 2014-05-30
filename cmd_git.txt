@@ -16,7 +16,8 @@
   git commit
 
 
-
+  .push to remote
+  git push -u origin
 
 vim commands:
 ^   :go to line head
