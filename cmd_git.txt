@@ -23,5 +23,8 @@ vim commands:
 $   :go to line end
 gg  :go to first line 
 G   :go to last  line
+u   :undo
 
-ctl+v  : enter visual mode 
+
+ctrl+v  : enter visual mode 
+ctrl+r : redo
