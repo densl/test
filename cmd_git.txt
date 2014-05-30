@@ -13,7 +13,7 @@
   git config --global user.email yourUserEmail
 
   .commit alter
-  git commit
+  git commit -m YourMessage
 
 
   .push to remote
