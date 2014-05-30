@@ -1,0 +1,16 @@
+
+
+  .show remote info
+  git remote show origin
+ 
+  .add files
+  git add --all
+
+  .show status
+  git status
+
+  .set user
+  git config --global user.name yourUserName
+  git config --global user.email yourUserEmail
+
+
