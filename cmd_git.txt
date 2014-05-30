@@ -13,8 +13,9 @@
   git config --global user.email yourUserEmail
 
   .commit alter
-  git commit -m YourMessage
-
+  git commit -m YourMessage   #will commit all changes
+  git commit -m "message" -e  #edit what files
+  git commit --status         #show commit status
 
   .push to remote
   git push -u origin
@@ -28,4 +29,4 @@ u   :undo
 
 
 ctrl+v  : enter visual mode 
-ctrl+r : redo
+ctrl+r  : redo
