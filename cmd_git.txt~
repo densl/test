@@ -9,8 +9,18 @@
   .show status
   git status
 
-  .set user
-  git config --global user.name yourUserName
+  .set user git config --global user.name yourUserName
   git config --global user.email yourUserEmail
 
+  .commit alter
+  git commit
 
+
+
+
+vim commands:
+^   :go to line head
+$   :go to line end
+
+
+ctl+v  : enter 
