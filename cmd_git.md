@@ -33,6 +33,26 @@
   git config --global push.default simple 
   
 
+#add ssh key
+#Creates a new ssh key, using the provided email as a label
+  ssh-keygen -t rsa -C "your_email@example.com"
+
+#enter your passphase
+#add new key to ssh-agent
+  ssh-add ~/.ssh/id_rsa
+#add your ssh key to github
+  clip < ~/.ssh/id_rsa.pub #copy contents to your clipboard
+
+#add SSH key in GitHub
+#Test everything out
+  ssh -T git@github.com
+
+#
+
+
+
+
+
 vim commands:
 ^   :go to line head
 $   :go to line end
