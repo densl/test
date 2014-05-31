@@ -5,6 +5,7 @@
  
   .add files
   git add --all
+  git add .                   #add modified files
 
   .show status
   git status
@@ -19,6 +20,7 @@
 
   .push to remote
   git push -u origin
+  git push -u origin master   #push branch only master
 
   .switch branch
    git checkout <branch>
