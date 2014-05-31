@@ -20,6 +20,16 @@
   .push to remote
   git push -u origin
 
+  .switch branch
+   git checkout <branch>
+
+  .pull remote changes
+  git pull -v origin master
+  git pull -v --all            #pull all branches
+
+
+
+
 vim commands:
 ^   :go to line head
 $   :go to line end
