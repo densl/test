@@ -29,8 +29,9 @@
   git pull -v origin master
   git pull -v --all            #pull all branches
 
-
-
+  .config commit
+  git config --global push.default simple 
+  
 
 vim commands:
 ^   :go to line head
