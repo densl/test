@@ -1,4 +1,4 @@
 test
 ====
 
-program study test
+git study test
