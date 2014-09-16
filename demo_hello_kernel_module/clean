@@ -1,0 +1,9 @@
+#! /bin/sh
+
+rm *.o
+rm *.ko
+rm *.order
+rm *.symvers
+rm *.mod.c
+
+rmmod hello
