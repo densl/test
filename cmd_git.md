@@ -48,7 +48,9 @@
   ssh -T git@github.com
 
 #
-
+#push to remote
+  git remote add test git@github.com:username/repo.git
+  git push test master
 
 
 
