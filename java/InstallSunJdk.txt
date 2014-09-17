@@ -1,0 +1,29 @@
+
+## First, download sun jdk   *.tar.xz
+## Second, add to path or environment
+  sudo vi /etc/environment
+   PATH=$PATH:/usr/local/yourjdk/bin
+   CLASSPATH=.:/usr/local/yourjdk/lib
+   JAVA_HOME=/usr/local/yourjdk 
+
+## or
+   add to /etc/profile
+
+  JAVA_HOME=/usr/local/jdk1.6/
+  CLASSPATH=.:$JAVA_HOME/lib/tools.jar
+  PATH=$JAVA_HOME/bin:$PATH
+  export JAVA_HOME CLASSPATH PATH
+
+
+##add java && javac to system
+ 
+update-alternatives --install /usr/bin/java java /usr/local/yourjdk/bin/java 300
+
+update-alternatives --install /usr/bin/javac javac /usr/local/yourjdk/bin/javac 300
+
+##add to system menu
+
+update-alternatives --config java
+
+update-alternatives --config javac
+
