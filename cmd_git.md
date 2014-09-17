@@ -18,6 +18,10 @@
   git commit -m "message" -e  #edit what files
   git commit --status         #show commit status
 
+  .edit commit message
+  git commit --amend
+
+
   .push to remote
   git push -u origin
   git push -u origin master   #push branch only master
