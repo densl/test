@@ -1,0 +1,19 @@
+
+
+## use grub2 for iso setup
+
+loopback loop (hd0,1)/ubuntu.iso
+linux (loop)/casper/vmlinuz boot=casper iso-can/filename=/ubuntu.iso
+initrd (loop)/casper/initrd.lz
+boot
+
+## grub rescue
+
+grub rescue> set root=(hd0,1)
+grub rescue> set prefix=(hd0,1)/grub
+grub rescue> insmod /grub/normal.mod
+
+## in linux
+
+sudo update-grub
+sudo grub-install --root-directory=/mnt /dev/sda
