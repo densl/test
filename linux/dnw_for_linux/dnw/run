@@ -1,0 +1,5 @@
+#! /bin/sh
+
+rm dnw
+
+gcc -o dnw dnw.c

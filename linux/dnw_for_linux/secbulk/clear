@@ -1,0 +1,9 @@
+#! /bin/sh
+
+rm *.o
+rm *.order
+rm *.mod.c
+rm *.symvers
+rm *.ko
+
+rmmod secbulk
