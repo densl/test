@@ -21,3 +21,8 @@
 
 ## !cmd or  %!cmd :执行shell命令
 
+## 替换第n行开始到最后一行中每一行所有 old 为 new
+	:n, $s/old/new/g
+
+## 替换当前行所有 old 为 new
+	:s/old/new/g
