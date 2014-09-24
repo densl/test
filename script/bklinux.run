@@ -1,0 +1,1 @@
+tar cvfpj backup.tar.gz --exclude=/dev --exclude=/sys --exclude=/mnt --exclude=/proc --exclude=/lost+found --exclude=/media --exclude=/cdrom --exclude=/tmp /
