@@ -69,3 +69,13 @@ u   :undo
 
 ctrl+v  : enter visual mode 
 ctrl+r  : redo
+
+
+## color settings
+  #use default color and set default editor
+
+	git config --global color.diff auto
+	git config --global color.status auto
+	git config --global color.branch auto
+
+	git config --global core.editor vim
