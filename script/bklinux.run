@@ -1,1 +1,14 @@
-tar cvfpj backup.tar.gz --exclude=/dev --exclude=/sys --exclude=/mnt --exclude=/proc --exclude=/lost+found --exclude=/media --exclude=/cdrom --exclude=/tmp /
+#! /bin/sh
+
+bktime=`date | \
+   sed -re 's/[^0-9]*([0-9]*)[^0-9]*/\1/g' \
+       -e 's/..(.{10}).*/\1/g'`
+
+
+echo $bktime
+
+tar cvfpj ~/sk/backup/backup$bktime.tar.gz \
+  --exclude=/dev --exclude=/sys --exclude=/mnt --exclude=/proc \
+  --exclude=/lost+found --exclude=/media --exclude=/cdrom \
+  --exclude=/tmp /
+
