@@ -56,7 +56,8 @@
   git remote add test git@github.com:username/repo.git
   git push test master
 
-
+#reset to last one commit
+  git reset HEAD~1
 
 
 vim commands:
