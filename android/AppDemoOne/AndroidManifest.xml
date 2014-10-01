@@ -6,7 +6,7 @@
 
     <uses-sdk
         android:minSdkVersion="14"
-        android:targetSdkVersion="21" />
+        android:targetSdkVersion="19" />
 
     <application
         android:allowBackup="true"
@@ -42,6 +42,16 @@
             </intent-filter>
             
         </activity>
+        
+        <service 
+            android:name=".ServiceTest"  
+			android:enabled="true">  
+            <intent-filter>
+                <action android:name="com.zeng.Service.ServiceTest" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+
     </application>
 
     <!-- To auto-complete the email text field in the login form with the user's emails -->

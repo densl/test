@@ -34,10 +34,20 @@ public class MainActivity extends Activity {
     	Button button2 = (Button)findViewById(R.id.func2);
     	
     	
+    	
         // listen for new devices
         IntentFilter filter = new IntentFilter();
         filter.addAction("helloaction");
-        registerReceiver(mUsbReceiver, filter);
+        registerReceiver(BroadcastTest.mUsbReceiver, filter);
+        
+        
+        //service
+        Bundle bundle = new Bundle();  
+        bundle.putString("op", "test");  
+        Intent intent =new Intent("com.zeng.Service.ServiceTest");
+        intent.putExtras(bundle);  
+          
+        startService(intent);
         
         
     	button1.setOnClickListener(new OnClickListener() {
