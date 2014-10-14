@@ -14,93 +14,10 @@ DEFINE_GUID(USB_PRINTER,0x28d78fad, 0x5a12, 0x11D1, 0xae, 0x5b, 0x00, 0x00, 0xf8
 //
 UsbCore::UsbCore()
 {
-	m_timeout = 10000; //10s
+	m_timeout = 5000; //5s
+	m_devIndex = 1; //first printer device
 }
 
-
-//mlocation={1 ~ max_word},return mlocation's path
-BSTR UsbCore::findPrinterPath(WORD &mlocation, DWORD &maxCount)
-{
-	DWORD ret;
-
-	//open enum key
-	HKEY hKey;
-	TCHAR *subkey_usbprint = _T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
-	ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE,subkey_usbprint,0,KEY_READ,&hKey);
-	if( ERROR_SUCCESS !=  ret)
-	{
-		return NULL;
-	}
-
-	//get usb printer count
-	DWORD retLen = sizeof(DWORD);
-	DWORD usbCount = 0;
-	ret = RegQueryValueExW(hKey,_T("Count"),NULL,NULL,(BYTE*)&usbCount,&retLen);
-	if( ERROR_SUCCESS != ret || usbCount == 0)
-	{
-		RegCloseKey(hKey);
-		return NULL;
-	}
-
-	//check max limited
-	maxCount = usbCount;
-	if (mlocation > usbCount || mlocation == 0){
-		mlocation = 1;
-	}
-
-	//Enum
-	CString strIndex; //saved index
-	TCHAR strPath[MAX_PATH];
-
-	for (WORD index = 0; index<usbCount; ++index)
-	{
-		strIndex.Format(_T("%d"), index);
-		retLen = MAX_PATH*sizeof(TCHAR);
-		memset(strPath, 0, retLen);
-
-
-		ret = RegQueryValueExW(hKey,strIndex,NULL,NULL,(BYTE*)strPath,&retLen);	
-		if( ERROR_SUCCESS != ret)
-		{
-			RegCloseKey(hKey);
-			return NULL;
-		}
-		if (mlocation == (index+1) )
-			break;
-	}
-	//found certain path
-	RegCloseKey(hKey);
-	CString str = strPath;
-
-	return str.AllocSysString();
-}
-
-//get first printer device full path
-BSTR UsbCore::getPrinterDevPath(WORD index)
-{
-	CString strTpl;
-	strTpl = _T("\\\\?\\replacement#{28d78fad-5a12-11d1-ae5b-0000f803a8c2}");
-
-	//get device path
-	//WORD index = 0;
-	DWORD maxcount = 0;
-	CString strPath = findPrinterPath(index, maxcount);
-	if (strPath.IsEmpty())
-		return NULL;
-
-	//fullfil path
-	DWORD ret = strPath.Replace(_T('\\'), _T('#'));
-	strTpl.Replace(_T("replacement"), strPath); 
-
-	return strTpl.AllocSysString();
-}
-
-// return usb handle
-HANDLE UsbCore::getUsbHandle()
-{
-	HANDLE m_handle = OpenUsbDevice(1);
-	return m_handle;
-}
 //get wait time
 SHORT UsbCore::getWaitTime()
 {
@@ -110,22 +27,236 @@ void UsbCore::setWaitTime(SHORT timeout)
 {
 	m_timeout = timeout;
 }
+
+//get device index
+WORD UsbCore::getDevIndex()
+{
+	return m_devIndex;
+}
+//device index < max usb count
+void UsbCore::setDevIndex(WORD devIndex)
+{
+	m_devIndex = devIndex;
+}
+
+//get max usb printer device count
+DWORD UsbCore::getDevMaxCount()
+{
+	DWORD m_ErrorCode = 0;
+	DWORD ret = 0;
+
+	//open enum key
+	HKEY hKey;
+	TCHAR *subkey_usbprint = _T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
+	ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE,subkey_usbprint,0,KEY_READ,&hKey);
+	if( ERROR_SUCCESS !=  ret)
+	{
+		return m_ErrorCode;
+	}
+
+	//get usb printer count
+	DWORD retLen = sizeof(DWORD);
+	DWORD usbCount = 0;
+	ret = RegQueryValueExW(hKey,_T("Count"),NULL,NULL,(BYTE*)&usbCount,&retLen);
+	if( ERROR_SUCCESS != ret)
+	{
+		RegCloseKey(hKey);
+		return m_ErrorCode;
+	}
+	return usbCount;
+}
+//check if printer is available
 BOOL UsbCore::IsPrinterAvailable(void)
 {
-	WORD index = 0;
-	DWORD maxcount = 0;
+	WORD index = getDevIndex();
+	DWORD maxcount = getDevMaxCount();
 
-	CString strPath = findPrinterPath(index, maxcount);
-	if (strPath.IsEmpty())
+	if (maxcount == 0 || index > maxcount)
 		return FALSE;
 
 	return TRUE;
 }
+
+//get device string
+BSTR UsbCore::getDevString()
+{
+	DWORD ret;
+	BSTR m_ErrorCode = NULL;
+
+	//check printer states
+	if ( !IsPrinterAvailable() )
+		return m_ErrorCode;
+
+	//open enum key
+	HKEY hKey;
+	TCHAR *subkey_usbprint = _T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
+	ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE,subkey_usbprint,0,KEY_READ,&hKey);
+	if( ERROR_SUCCESS !=  ret)
+	{
+		return m_ErrorCode;
+	}
+
+	//init variables
+	CString strIndex; //saved device index
+	strIndex.Format(_T("%d"), getDevIndex()-1);
+
+	TCHAR strPathTmp[MAX_PATH];
+	DWORD retLen = MAX_PATH * sizeof(TCHAR);
+	memset(strPathTmp, 0, retLen);
+
+	//query device string
+	ret = RegQueryValueExW(hKey,strIndex,NULL,NULL,(BYTE*)strPathTmp,&retLen);
+	RegCloseKey(hKey);
+	if( ERROR_SUCCESS != ret)
+	{
+		return m_ErrorCode;
+	}
+
+	CString strPath = strPathTmp;
+	return strPath.AllocSysString();
+}
+
+//get first printer device full path
+BSTR UsbCore::getDevicePath()
+{
+	CString strTpl;
+	BSTR m_ErrorCode = NULL;
+	strTpl = _T("\\\\?\\replacement#{28d78fad-5a12-11d1-ae5b-0000f803a8c2}");
+
+	//get device string
+	CString strPath = getDevString();
+	if (strPath.IsEmpty())
+		return m_ErrorCode;
+
+	//fullfil path
+	DWORD ret = strPath.Replace(_T('\\'), _T('#'));
+	strTpl.Replace(_T("replacement"), strPath); 
+
+	return strTpl.AllocSysString();
+}
+
+
+//get port parameters key
+BOOL UsbCore::getPortParametersKey(HKEY &PortParaKey)
+{
+	BOOL m_ErrorCode = FALSE;
+	TCHAR subKeyStr[] = _T("#");
+	TCHAR subDevKeyStr[] = _T("Device Parameters");
+	TCHAR subPortDscStr[] = _T("Port Description");
+
+	//open class reg
+	DWORD ret;
+	HKEY hKey;
+	hKey = SetupDiOpenClassRegKeyEx((LPGUID)&(USB_PRINTER),KEY_READ,DIOCR_INTERFACE,NULL,NULL);
+	if(hKey == INVALID_HANDLE_VALUE )
+	{
+		return m_ErrorCode;
+	}
+
+	//get device string
+	CString tempPath = getDevString();
+	if (tempPath.IsEmpty())
+	{
+		return m_ErrorCode;
+	}
+	tempPath.Replace(_T('\\'), _T('#'));
+	CString printerPath = _T("##?#replacement#{28d78fad-5a12-11d1-ae5b-0000f803a8c2}");
+	printerPath.Replace(_T("replacement"), tempPath);
+
+	//open printer class path
+	HKEY	hSubKey;
+	ret = RegOpenKeyEx(hKey, printerPath, 0, KEY_READ, &hSubKey);
+	RegCloseKey(hKey);
+	if (ret)
+	{	
+		return m_ErrorCode;
+	}
+
+	//open #
+	HKEY	hSub1Key;
+	ret = RegOpenKeyEx(hSubKey, subKeyStr, 0, KEY_READ, &hSub1Key);
+	RegCloseKey(hSubKey);
+	if (ret)
+	{		
+		return m_ErrorCode;
+	}
+
+	//open device parameter
+	ret = RegOpenKeyEx(hSub1Key, subDevKeyStr, 0, KEY_READ, &PortParaKey);
+	RegCloseKey(hSub1Key);
+	if (ret)
+	{		
+		return m_ErrorCode;
+	}
+
+	// "SYSTEM\\CurrentControlSet\\DeviceClasses\\##?#USB****\\#\\Device Parameters"
+	return TRUE;
+}
+
+//get port description
+BSTR UsbCore::getPortDescription()
+{
+	BSTR m_ErrorCode = NULL;
+	TCHAR subPortDscStr[] = _T("Port Description");
+
+	//open port parameters key reg
+	DWORD ret;
+	HKEY hKey;
+	ret = getPortParametersKey(hKey);
+	if (!ret) //False then return
+	{	
+		return m_ErrorCode;
+	}
+
+	//get port description
+	TCHAR	datBuf[512];
+	DWORD retLen = sizeof(TCHAR) * 512;
+	memset(datBuf, 0, retLen);
+	
+	ret = RegQueryValueEx(hKey, subPortDscStr, NULL, NULL, (BYTE*)datBuf, &retLen);
+	RegCloseKey(hKey);
+	if (ret)
+	{	
+		return m_ErrorCode;
+	}
+
+	CString strRet = datBuf;
+	return strRet.AllocSysString();
+}
+//get the port number of usb printer
+DWORD UsbCore::getPortNumber()
+{
+	DWORD m_ErrorCode = 0;
+	TCHAR subPortDscStr[] = _T("Port Number");
+	DWORD ret;
+
+	//open class reg	
+	HKEY hKey;
+	ret = getPortParametersKey(hKey);
+	if (!ret) //False then return
+	{	
+		return m_ErrorCode;
+	}
+
+	//get port number
+	DWORD portNum = 0;
+	DWORD retLen = 8;
+	ret = RegQueryValueEx(hKey, subPortDscStr, NULL, NULL, (LPBYTE)&portNum, &retLen);
+	RegCloseKey(hKey);
+	if (ret)
+	{	
+		return m_ErrorCode;
+	}
+
+	return portNum;
+}
+
+
 //open usb device
-HANDLE UsbCore::OpenUsbDevice(WORD index)
+HANDLE UsbCore::OpenUsbDevice()
 {
 	//get device path
-	CString strPath = getPrinterDevPath(index);
+	CString strPath = getDevicePath();
 	if (strPath.IsEmpty())
 		return INVALID_HANDLE_VALUE;
 
@@ -140,6 +271,16 @@ HANDLE UsbCore::OpenUsbDevice(WORD index)
 
 	return usbHandle;
 }
+
+// return usb handle
+HANDLE UsbCore::getUsbHandle()
+{
+	HANDLE m_handle = OpenUsbDevice(); //get first usb device
+	return m_handle;
+}
+
+
+
 
 
 
@@ -293,6 +434,3 @@ BOOL UsbCore::getRequest(DWORD IoCtlCode, BYTE *inBuf, DWORD inbufLen, LPVOID lp
 	CloseHandle(m_device);
 	return TRUE;
 }
-
-
-
