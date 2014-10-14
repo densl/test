@@ -75,6 +75,10 @@
 	make
 	make install_root=$SYSROOT install
 
+	##pathch
+	patch -p1 < ../../source/glibc-2.15-cpuid.patch
+	patch -p1 < ../../source/glibc-2.15-s_frexp.patch
+
 8.构建完整的交叉编译器
 	rm gcc-build/* -rf
 	../gcc/configure \
@@ -146,3 +150,9 @@ others for c:
   compile:
 	gcc hello.c
 	./a.out
+
+
+
+其它相关资料：
+	blog.163.com/wflk_wangwei/blog/static/2788833720144252959686
+
