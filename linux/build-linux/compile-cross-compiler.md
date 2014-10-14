@@ -46,7 +46,7 @@
 	  --prefix=$CROSS_GCC_TMP --target=$TARGET \
 	  --with-sysroot=$SYSROOT \
 	  --with-newlib --enable-languages=c \
-	  --with-mpfr-include-/vita/build/gcc/mpfr/src \
+	  --with-mpfr-include=/vita/build/gcc/mpfr/src \
 	  --with-mpfr-lib=/vita/build/gcc-build/mpfr/src/.libs \
 	  --disable-shared --disable-threads \
 	  --disable-decimal-float --disable-libquadmath \
@@ -61,7 +61,7 @@
 6.安装内核头文件
 	make mrproper
 	make ARCH=i386 headers_check
-	make ARCH=i386 INSTALL_HDR_PATH=$SYSROOT/usr/headers_install
+	make ARCH=i386 INSTALL_HDR_PATH=$SYSROOT/usr/  headers_install
 
 7.编译目标系统的C库
 	mkdir glibc-build
