@@ -202,15 +202,17 @@ void CUsbBasicDemoDlg::OnBnClickedButton1()
 	count = usbcore.IsPrinterAvailable();
 
 	test = usbcore.getPortDescription();
-	MessageBox(test);
+	if (!test.IsEmpty())
+		MessageBox(test);
 
 	test = usbcore.getDevicePath();
-	MessageBox(test);
+	if (!test.IsEmpty())
+		MessageBox(test);
 
 	
 }
 
-
+//send
 void CUsbBasicDemoDlg::OnBnClickedButton2()
 {
 	// TODO: 在此添加控件通知处理程序代码
@@ -240,13 +242,14 @@ void CUsbBasicDemoDlg::OnBnClickedButton2()
 }
 
 
+//recv
 void CUsbBasicDemoDlg::OnBnClickedButton3()
 {
 	// TODO: 在此添加控件通知处理程序代码
 
 	//FOR TEST
-	CHAR cmd_send[50] = {0x1d, 0x53, 0x4c, 0x44, 0};
-	usbcore.send(cmd_send, 4);
+	//CHAR cmd_send[50] = {0x1d, 0x53, 0x4c, 0x44, 0};
+	//usbcore.send(cmd_send, 4);
 	//END TEST
 
 	CString rString = usbcore.getRecvStr();
@@ -260,6 +263,7 @@ void CUsbBasicDemoDlg::OnBnClickedButton3()
 }
 
 
+//ioctrl
 void CUsbBasicDemoDlg::OnBnClickedButton4()
 {
 	// TODO: 在此添加控件通知处理程序代码

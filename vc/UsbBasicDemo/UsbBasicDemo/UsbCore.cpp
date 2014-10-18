@@ -8,10 +8,23 @@
 #include "SetupAPI.h"
 #include <initguid.h>
 
-
+//usb printer define
 DEFINE_GUID(USB_PRINTER,0x28d78fad, 0x5a12, 0x11D1, 0xae, 0x5b, 0x00, 0x00, 0xf8, 0x03, 0xa8, 0xc2);
+static TCHAR * usb_dev_enum = _T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
+static TCHAR * usb_guid_str = _T("28d78fad-5a12-11d1-ae5b-0000f803a8c2");
 
- 
+//for test {53f56307-b6bf-11d0-94f2-00a0c91efb8b}\##?#USBSTOR#Disk&Ven_TOSHIBA&Prod_TransMemory&Rev_PMAP#001CC0C6117CED110319005C&0#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}
+//{4d36e967-e325-11ce-bfc1-08002be10318}
+DEFINE_GUID(TEST_MCLASS,0x53f56307, 0xb6bf, 0x11d0, 0x94, 0xf2, 0x00, 0xa0, 0xc9, 0x1e, 0xfb, 0x8b);
+static TCHAR * test_dev_enum = _T("SYSTEM\\CurrentControlSet\\Services\\USBSTOR\\Enum");
+static TCHAR * test_guid_str = _T("53f56307-b6bf-11d0-94f2-00a0c91efb8b");
+
+//global control
+GUID DEV_GUID = USB_PRINTER;
+static TCHAR * DEV_ENUM = usb_dev_enum;
+static TCHAR * GUID_STR = usb_guid_str;
+
+
 //
 UsbCore::UsbCore()
 {
@@ -48,7 +61,7 @@ DWORD UsbCore::getDevMaxCount()
 
 	//open enum key
 	HKEY hKey;
-	TCHAR *subkey_usbprint = _T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
+	TCHAR *subkey_usbprint = DEV_ENUM;//_T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
 	ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE,subkey_usbprint,0,KEY_READ,&hKey);
 	if( ERROR_SUCCESS !=  ret)
 	{
@@ -90,7 +103,7 @@ BSTR UsbCore::getDevInstance()
 
 	//open enum key
 	HKEY hKey;
-	TCHAR *subkey_usbprint = _T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
+	TCHAR *subkey_usbprint = DEV_ENUM;//_T("SYSTEM\\CurrentControlSet\\Services\\usbprint\\Enum");
 	ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE,subkey_usbprint,0,KEY_READ,&hKey);
 	if( ERROR_SUCCESS !=  ret)
 	{
@@ -122,7 +135,8 @@ BSTR UsbCore::getDevicePath()
 {
 	CString strTpl;
 	BSTR m_ErrorCode = NULL;
-	strTpl = _T("\\\\?\\replacement#{28d78fad-5a12-11d1-ae5b-0000f803a8c2}");
+	strTpl = _T("\\\\?\\replacement#{guid}");
+	strTpl.Replace(_T("guid"), GUID_STR);
 
 	//get device string
 	CString strPath = getDevInstance();
@@ -148,7 +162,7 @@ BOOL UsbCore::getPortParametersKey(HKEY &PortParaKey)
 	//open class reg
 	DWORD ret;
 	HKEY hKey;
-	hKey = SetupDiOpenClassRegKeyEx((LPGUID)&(USB_PRINTER),KEY_READ,DIOCR_INTERFACE,NULL,NULL);
+	hKey = SetupDiOpenClassRegKeyEx((LPGUID)&(DEV_GUID),KEY_READ,DIOCR_INTERFACE,NULL,NULL);
 	if(hKey == INVALID_HANDLE_VALUE )
 	{
 		return m_ErrorCode;
@@ -161,7 +175,8 @@ BOOL UsbCore::getPortParametersKey(HKEY &PortParaKey)
 		return m_ErrorCode;
 	}
 	tempPath.Replace(_T('\\'), _T('#'));
-	CString printerPath = _T("##?#replacement#{28d78fad-5a12-11d1-ae5b-0000f803a8c2}");
+	CString printerPath = _T("##?#replacement#{guid");
+	printerPath.Replace(_T("guid"), GUID_STR);
 	printerPath.Replace(_T("replacement"), tempPath);
 
 	//open printer class path
