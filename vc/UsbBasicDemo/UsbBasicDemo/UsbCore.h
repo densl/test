@@ -27,6 +27,9 @@ public:
 
 	BSTR getRequestStr(DWORD IoCtlCode, CHAR *inBuf, DWORD inbufLen);
 	BSTR getReqStr(DWORD IoCtlCode);
+
+
+	BOOL setUsbPort(WCHAR * usbport);
 private:
 	SHORT m_timeout;
 	WORD m_devIndex;
@@ -42,7 +45,10 @@ private:
 	
 	DWORD strToHexArray(CHAR * inBuf, CHAR * outBuf);
 	CHAR AscToHex(CHAR asc);
-	
+
+	void closeUsbHandle(HANDLE m_handle);
+	void logUsb(WCHAR * str);
+
 public:
 
 };

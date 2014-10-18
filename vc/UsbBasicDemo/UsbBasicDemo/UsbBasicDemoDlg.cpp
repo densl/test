@@ -195,6 +195,8 @@ void CUsbBasicDemoDlg::OnBnClickedButton1()
 	CString test;
 	DWORD count;
 
+	usbcore.setUsbPort(_T("usb001"));
+
 	count = usbcore.getDevMaxCount();
 	count = usbcore.getPortNumber();
 	count = usbcore.IsPrinterAvailable();
@@ -252,7 +254,7 @@ void CUsbBasicDemoDlg::OnBnClickedButton3()
 
 	UpdateData(TRUE);
 	m_output += rString;
-	m_output += _T("\r\n");
+	m_output += _T("#@recv done.\r\n");
 	UpdateData(FALSE);
 	GetDlgItem(IDC_EDIT2)->SendMessage(EM_SCROLL, SB_BOTTOM, 0);//¹ö¶¯µ½¶¥²¿
 }
@@ -285,7 +287,7 @@ void CUsbBasicDemoDlg::OnBnClickedButton4()
 
 	CString tempStr = usbcore.getReqStr(IoCtlCode);
 	CString str;
-	str.Format(_T("\r\n"));
+	str.Format(_T("#@req done.\r\n"));
 	str = tempStr + str;
 
 	UpdateData(TRUE);

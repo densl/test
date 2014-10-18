@@ -253,6 +253,38 @@ DWORD UsbCore::getPortNumber()
 }
 
 
+BOOL UsbCore::setUsbPort(WCHAR * usbport)
+{
+	BOOL m_ErrorCode = FALSE;
+
+	CString temp = usbport;
+	temp = temp.MakeUpper().TrimLeft(_T("USB0"));
+
+	CString bktemp = temp;
+	if (!temp.Trim(_T("0123456789")).IsEmpty())
+	{
+		return m_ErrorCode;
+	}
+
+	DWORD portnum = _ttoi(bktemp);
+	DWORD devMax = getDevMaxCount();
+	if (devMax == 0)
+		return m_ErrorCode;
+
+	WORD cur = getDevIndex();
+	for(WORD i=0; i< devMax; i++)
+	{
+		setDevIndex(i);
+		if (portnum == getPortNumber() )
+			return TRUE;
+		else
+			continue;
+	}
+
+	setDevIndex(cur);
+	return m_ErrorCode;
+}
+
 //open usb device
 HANDLE UsbCore::OpenUsbDevice()
 {
@@ -278,6 +310,12 @@ HANDLE UsbCore::getUsbHandle()
 {
 	HANDLE m_handle = OpenUsbDevice(); //get first usb device
 	return m_handle;
+}
+
+void UsbCore::closeUsbHandle(HANDLE m_handle)
+{
+	if (m_handle != INVALID_HANDLE_VALUE)
+		CloseHandle(m_handle);
 }
 
 
@@ -309,7 +347,7 @@ DWORD UsbCore::recv(CHAR *rBuf, DWORD rLen)
 		rtn = GetLastError();
 		if (rtn != ERROR_IO_PENDING)
 		{
-			CloseHandle(m_device);
+			closeUsbHandle(m_device);
 			CloseHandle(mr_EvtOvlp.hEvent);
 			return m_ErrorCode; //Error
 		}
@@ -326,7 +364,7 @@ DWORD UsbCore::recv(CHAR *rBuf, DWORD rLen)
 			rtn = GetLastError();
 			if (rtn != ERROR_IO_PENDING)
 			{
-				CloseHandle(m_device);
+				closeUsbHandle(m_device);
 				CloseHandle(mr_EvtOvlp.hEvent);
 				return m_ErrorCode;
 			}
@@ -336,11 +374,11 @@ DWORD UsbCore::recv(CHAR *rBuf, DWORD rLen)
 		else
 		{
 			break; //success
-		}        
+		}
 	}
 
 	//close handles
-	CloseHandle(m_device);
+	closeUsbHandle(m_device);
 	CloseHandle(mr_EvtOvlp.hEvent);
 	return dwSize;
 }
@@ -368,7 +406,7 @@ DWORD UsbCore::send(CHAR *sBuf,DWORD sLen)
 		rtn = GetLastError();
 		if (rtn != ERROR_IO_PENDING)
 		{
-			CloseHandle(m_device);
+			closeUsbHandle(m_device);
 			CloseHandle(mw_EvtOvlp.hEvent);
 			return m_ErrorCode;
 		}
@@ -384,7 +422,7 @@ DWORD UsbCore::send(CHAR *sBuf,DWORD sLen)
 			rtn = GetLastError();
 			if (rtn != ERROR_IO_PENDING)
 			{
-				CloseHandle(m_device);
+				closeUsbHandle(m_device);
 				CloseHandle(mw_EvtOvlp.hEvent);
 				return m_ErrorCode;
 			}
@@ -398,23 +436,27 @@ DWORD UsbCore::send(CHAR *sBuf,DWORD sLen)
 	}
 
 	//close handles
-	CloseHandle(m_device);
+	closeUsbHandle(m_device);
 	CloseHandle(mw_EvtOvlp.hEvent);
 	return dwSize;
 }
 
 BSTR UsbCore::getRecvStr()
 {
-	static CHAR *strChar = new CHAR[4096];
+	BSTR m_ErrorCode = NULL;
+
+	CHAR *strChar = new CHAR[4096];
 	memset(strChar, 0, sizeof(CHAR) * 4096);
 
-	static TCHAR *strTchar = new TCHAR[4096];
+	TCHAR *strTchar = new TCHAR[4096];
 	memset(strTchar, 0, sizeof(CHAR) * 4096);
 
 	DWORD retLen = recv(strChar, 4096);
+	if (retLen == 0)
+		return m_ErrorCode;
 
 	//to void mistakes
-	for (DWORD i=0; i<retLen-2; i++)
+	for (DWORD i=0; i<retLen; i++)
 	{
 		if ( strChar[i] == 0)
 			strChar[i] = 0x20;
@@ -427,20 +469,21 @@ BSTR UsbCore::getRecvStr()
 	return strResult.AllocSysString();
 }
 
-DWORD UsbCore::sendData(WCHAR *data, BOOL dataflag)
+DWORD UsbCore::sendData(WCHAR *inData, BOOL dataflag)
 {
 	DWORD m_ErrorCode = 0;
-	static CHAR * cmd_send = new CHAR[4096];
-	memset(cmd_send, 0, sizeof(BYTE) * 4096);
+	WCHAR * data = inData;
 
-	static CHAR * tmpBuf = new CHAR[4096];
-	memset(tmpBuf, 0, sizeof(CHAR) * 4096);
-
-
+	//check over flow
 	DWORD len = _wcstombsz(0, data, 0);
 	if (len == 0)
 		return m_ErrorCode;
-	_wcstombsz(tmpBuf, data, len);
+
+	DWORD arrayLen = len + 2;
+
+	CHAR * tmpBuf = new CHAR[arrayLen];
+	memset(tmpBuf, 0, sizeof(CHAR) * arrayLen);
+	_wcstombsz(tmpBuf, data, arrayLen);
 
 	//data
 	if (dataflag)
@@ -453,6 +496,9 @@ DWORD UsbCore::sendData(WCHAR *data, BOOL dataflag)
 	CString tpl = _T("0123456789abcdefABCDEF");
 	if ( !test.Trim(tpl).IsEmpty() )
 		return m_ErrorCode;
+
+	CHAR * cmd_send = new CHAR[arrayLen];
+	memset(cmd_send, 0, sizeof(BYTE) * arrayLen);
 
 	len = strToHexArray(tmpBuf, cmd_send);
 	return send(cmd_send, len);
@@ -491,14 +537,14 @@ DWORD UsbCore::getRequestFull(DWORD IoCtlCode, CHAR *inBuf, DWORD inbufLen, LPVO
 		ret = GetLastError();
 		if (ERROR_IO_PENDING != ret)
 		{
+			closeUsbHandle(m_device);
 			CloseHandle(m_EvtOvlp.hEvent);
-			CloseHandle(m_device);
 			return m_ErrorCode;
 		}
 	}
 
+	closeUsbHandle(m_device);
 	CloseHandle(m_EvtOvlp.hEvent);
-	CloseHandle(m_device);
 	return retLen;
 }
 
@@ -561,4 +607,10 @@ CHAR UsbCore::AscToHex(CHAR asc)
 		return asc - 'A';
 	
 	return 0;
+}
+
+
+void UsbCore::logUsb(WCHAR * str)
+{
+		return;
 }
