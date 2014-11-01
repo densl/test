@@ -1,0 +1,21 @@
+// ApkTools
+https://github.com/iBotPeaches/Apktool
+
+//
+Build Steps
+
+We use gradle to build. Its pretty easy. First clone the repository.
+
+git clone git://github.com/iBotPeaches/Apktool.git
+Move into the directory.
+
+cd Apktool
+Issue the build. ./gradlew for unix based systems. gradlew.bat for windows.
+
+[./gradlew][gradlew.bat] build fatJar
+You may also build a Proguard jar
+
+[./gradlew][gradlew.bat] build fatJar proguard
+Then look in
+
+./brut.apktool/apktool-cli/build/libs/apktool-xxxxx.jar
