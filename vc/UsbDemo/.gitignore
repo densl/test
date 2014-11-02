@@ -1,0 +1,10 @@
+*.swp
+*~
+*.o
+Debug/*
+Release/*
+*.sdf
+*.opensdf
+ipch/*
+*/Debug
+*/Release
