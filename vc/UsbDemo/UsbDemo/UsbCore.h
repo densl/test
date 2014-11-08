@@ -6,7 +6,11 @@ public:
 	UsbCore();
 
 public:
-	BOOL uOpen(char * path);
+	BOOL uSetUsbPort(WCHAR * usbport);
+	BOOL IsPrinterAvailable(void);
+	BSTR getPortDescription();
+
+	BOOL uOpen();
 	void uClose();
 
 	int uRead(char * buf, DWORD bufLen);
@@ -16,8 +20,25 @@ public:
 public:
 	void setError(char * err);
 	void setHandle(HANDLE mhandle);
+	
+private:
 	HANDLE getHandle();
 
-private:
 	HANDLE gHandle;
+
+
+private:
+	WORD m_devIndex;
+
+	WORD getDevIndex();
+	void setDevIndex(WORD devIndex);
+	DWORD getDevMaxCount();
+	
+	BSTR getDevInstance();
+	BSTR getDevicePath();
+	BOOL getPortParametersKey(HKEY &PortParaKey);
+	
+	DWORD getPortNumber();
+	
+	HANDLE OpenUsbDevice();
 };

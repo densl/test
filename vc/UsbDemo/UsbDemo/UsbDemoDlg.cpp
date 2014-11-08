@@ -169,11 +169,19 @@ HCURSOR CUsbDemoDlg::OnQueryDragIcon()
 
 void CUsbDemoDlg::OnBnClickedButton1()
 {
+
+
+	CString test = _T("hello");
+	char hello[1024] = {0};
+
+	DWORD ret = utilcore.unicodeToUTF8(test, test.GetLength(), hello, 512);
+
 	// TODO: 在此添加控件通知处理程序代码
-	DWORD ret = utilcore.getDword(1,2,3,4);
+	ret = utilcore.getDword(1,2,3,4);
 	return;
 
-	usbcore.uOpen("d:\\fackusb.txt");
+	//usbcore.uOpen("d:\\fackusb.txt");
+	usbcore.uOpen();
 	TCHAR * testFile = _T("d:\\fakeusb.txt");
 	CFile cf;
 	cf.Open(testFile, CFile::modeCreate | CFile::modeReadWrite);
