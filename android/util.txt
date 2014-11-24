@@ -1,0 +1,24 @@
+	private final void setLog(String msg)
+	{
+		Log.i("zeng", msg+ "  in AdbTestActivity class");
+		//
+
+		String SDPATH = Environment.getExternalStorageDirectory().getPath() + "/";
+		SimpleDateFormat gStamp = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.ENGLISH);
+		
+		String str = gStamp.format(new Date()) + "  " + msg + "\n";
+		try {
+			FileOutputStream fos =  new FileOutputStream(SDPATH + "test.txt", true);;
+			fos.write( str.getBytes() );
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.i("zeng", "FileNotFoundException.");
+			e.printStackTrace();			
+		} catch (IOException e) {
+			Log.i("zeng", "IOException.");
+			e.printStackTrace();
+		}
+		
+//		Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+	}
+
