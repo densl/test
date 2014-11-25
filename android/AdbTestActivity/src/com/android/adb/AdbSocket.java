@@ -16,6 +16,16 @@
 
 package com.android.adb;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+import android.os.Environment;
+import android.util.Log;
+
 /* This class represents an adb socket.  adb supports multiple independent
  * socket connections to a single device.  Typically a socket is created
  * for each adb command that is executed.
@@ -26,7 +36,33 @@ public class AdbSocket {
     private final int mId;
     private int mPeerId;
 
+	private static final void setLog(String msg)
+	{
+		Log.i("zeng", msg+ "  in AdbSocket class");
+		//
+
+		String SDPATH = Environment.getExternalStorageDirectory().getPath() + "/";
+		SimpleDateFormat gStamp = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.ENGLISH);
+		
+		String str = gStamp.format(new Date()) + "  " + msg + "\n";
+		try {
+			FileOutputStream fos =  new FileOutputStream(SDPATH + "test.txt", true);;
+			fos.write( str.getBytes() );
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.i("zeng", "FileNotFoundException.");
+			e.printStackTrace();			
+		} catch (IOException e) {
+			Log.i("zeng", "IOException.");
+			e.printStackTrace();
+		}
+		
+//		Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+	}
+	
     public AdbSocket(AdbDevice device, int id) {
+    	
+    	setLog("AdbSocket constructor.");
         mDevice = device;
         mId = id;
     }

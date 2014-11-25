@@ -238,14 +238,17 @@ public class AdbTestActivity extends Activity {
             setLog("UsbInterface "+i + " :" + intf);
             setLog("mEndpoints count: "+ intf.getEndpointCount());
             
-            for (int ab=0; ab<intf.getEndpointCount(); i++)
+            for (int ab=0; ab<intf.getEndpointCount(); ab++)
             {
             	UsbEndpoint ep = intf.getEndpoint(ab);
             	setLog("UsbEndpoint "+ab + " :" + ep);
             }
             
-            if (intf.getInterfaceClass() == 255 && intf.getInterfaceSubclass() == 66 &&
-                    intf.getInterfaceProtocol() == 1) {
+//            if (intf.getInterfaceClass() == 255 && intf.getInterfaceSubclass() == 66 &&
+//                    intf.getInterfaceProtocol() == 1) {
+			if (intf.getInterfaceClass() == 8
+					&& intf.getInterfaceSubclass() == 6
+					&& intf.getInterfaceProtocol() == 80) {       	
                 return intf;
             }
         }
