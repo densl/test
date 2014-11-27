@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+<LinearLayout 
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+	<TextView  
+		android:id="@+id/tv"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content" 
+	    android:text="@string/hello"/>
+	<Button
+		android:id="@+id/btnPrint"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:text="print"/> 
+	<Button
+		android:id="@+id/btnCheckFileExist"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:text="checkFileExist"/> 
+	<Button
+		android:id="@+id/btnReadFile"
+	    android:layout_width="fill_parent" 
+	    android:layout_height="wrap_content"
+	    android:text="ReadFile"/> 
+</LinearLayout>
+</ScrollView>
