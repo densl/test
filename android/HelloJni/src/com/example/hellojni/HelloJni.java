@@ -15,8 +15,18 @@
  */
 package com.example.hellojni;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.CharBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.logging.SimpleFormatter;
+
+import javax.xml.transform.Templates;
+
 
 import android.app.Activity;
 import android.content.Context;
@@ -28,12 +38,40 @@ import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Bundle;
+import android.os.Environment;
 import android.hardware.usb.UsbEndpoint;
 
 public class HelloJni extends Activity
 {
-	public static String TAG = "zeng";
+	private static String TAG = "zeng";
 	
+//	private static String SDPATH = Environment.getExternalStorageDirectory().getPath() + '/';
+//	private static SimpleDateFormat timetmp = new SimpleDateFormat("MM.dd hh:mm:ss", Locale.ENGLISH);
+	private static void setLog(String msg)
+	{
+		
+		Log.i("zeng", msg);
+		
+		//
+		String SDPATH = Environment.getExternalStorageDirectory().getPath() + '/';
+		SimpleDateFormat timetmp = new SimpleDateFormat("MM.dd hh:mm:ss", Locale.ENGLISH);
+		
+		String stamp = timetmp.format(new Date());
+		String temp = stamp + msg + '\n';
+		
+		try {
+			FileOutputStream fos = new FileOutputStream( SDPATH+"test.txt", true);
+			fos.write(temp.getBytes());
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.i("zeng", "FileNotFound Exception.");
+			e.printStackTrace();
+		} catch (IOException e) {
+			Log.i("zeng", "IOException Exception.");
+			e.printStackTrace();
+		}
+		
+	}
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -44,21 +82,28 @@ public class HelloJni extends Activity
          * the text is retrieved by calling a native
          * function.
          */
+        setLog("First test");
         
         Toast.makeText(getApplicationContext(), "This is onCreate", Toast.LENGTH_LONG).show();
         Log.i(TAG, "This is onCreate.");
         
         
         TextView  tv = new TextView(this);
-        tv.setText( stringFromJNIandInt(9) );
+        
+        Activity topassActivity = this;
+        tv.setText( testo(topassActivity) );
         setContentView(tv);
         
         
-        Log.i(TAG, stringFromJNIandInt(9));
-        
-        
-        //OpenUsb();
-        
+//        Log.i(TAG, stringFromJNIandInt(9));
+//        
+//        
+//        
+//        OpenUsb();
+//        
+//        
+//        UsbCore usbCore = new UsbCore();
+//        usbCore.OpenUsb();
         
         
     }
@@ -83,6 +128,7 @@ public class HelloJni extends Activity
      */
     public native String  unimplementedStringFromJNI();
 
+    public native String  testo(android.app.Activity obj);
     /* this is used to load the 'hello-jni' library on application
      * startup. The library has already been unpacked into
      * /data/data/com.example.hellojni/lib/libhello-jni.so at
@@ -95,6 +141,7 @@ public class HelloJni extends Activity
     
 	public void OpenUsb()
 	{
+		Log.i(TAG, "This is in OpenUsb().");
 		// get usb manager ********************************
 		UsbManager mManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		
@@ -153,7 +200,7 @@ public class HelloJni extends Activity
 			
 		}
 		
-		
+		Log.i(TAG, "End OpenUsb().");
 		
 	}
 	

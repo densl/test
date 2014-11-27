@@ -2,6 +2,7 @@ package com.example.hellojni;
 
 import java.util.HashMap;
 
+
 import android.R.integer;
 import android.app.Activity;
 import android.content.Context;
@@ -17,8 +18,12 @@ public class UsbCore extends Activity{
 
 	public void OpenUsb()
 	{
+		Log.i("zeng", "open usb in usbcore.java");
+		
+		super.onCreate(null);
 		// get usb manager ********************************
 		UsbManager mManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		
 		
 		// get device list ********************************
 		HashMap<String, UsbDevice> mDeviceList = mManager.getDeviceList(); 

@@ -79,9 +79,10 @@ Java_com_example_hellojni_HelloJni_stringFromJNIandInt( JNIEnv* env,
 
 
 	//
+	//jclass ClassJava;
+	//ClassJava = (*env)->FindClass(env, "com/example/hellojni/ClassJava");
 	jclass ClassJava;
 	ClassJava = (*env)->FindClass(env, "com/example/hellojni/ClassJava");
-
 
 
 
@@ -97,16 +98,63 @@ Java_com_example_hellojni_HelloJni_stringFromJNIandInt( JNIEnv* env,
 	return mtest;
 
 
+	//return "hello";
+}
+
+
+jstring
+Java_com_example_hellojni_HelloJni_testo( JNIEnv* env,
+                                                  jobject thiz , jobject mActivity)
+{
+
+	jboolean ret = 0;
+
+	jclass UsbPrint;
+	UsbPrint = (*env)->FindClass(env, "com/example/hellojni/UsbPrint");
+
+
+	//android.app.Activity;
+	jmethodID constructmethod = (*env)->GetMethodID(env, UsbPrint, "<init>", "()V");
+	jobject mUsbPrint = (*env)->NewObject(env, UsbPrint, constructmethod, mActivity);
+
+
+	jmethodID mact = (*env)->GetMethodID(env, UsbPrint, "SetAct", "(Landroid/app/Activity;)V");
+
+	(*env)->CallVoidMethod(env, mUsbPrint, mact, mActivity);
+
+
+
+	jmethodID mopenusb = (*env)->GetMethodID(env, UsbPrint, "OpenUsb", "()V");
+	(*env)->CallVoidMethod(env, mUsbPrint, mopenusb);
+
+
+	char toSend[] = "This is a test from hello-jni.c ";
+	int len = strlen(toSend);//30;
+
+	jbyteArray bytearray = (*env)->NewByteArray(env, len);
+	(*env)->SetByteArrayRegion(env, bytearray, 0, len, toSend);
+
+	jmethodID usbwrite = (*env)->GetMethodID(env, UsbPrint, "UsbWrite", "([BI)Z");
+	ret = (*env)->CallBooleanMethod(env, mUsbPrint, usbwrite, bytearray, len);
+
+
+	jmethodID mmethod = (*env)->GetMethodID(env, UsbPrint, "SayHello", "()Ljava/lang/String;");
+
+	jstring mtest;
+	mtest = (*env)->CallObjectMethod(env, mUsbPrint, mmethod);
+
+	return mtest;
+
+
+	//
 
 
 
 
+	//
 
 
-
-
-
-
+	return (*env)->NewStringUTF(env, "End test.");
 
 
 	//return "hello";
