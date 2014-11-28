@@ -22,6 +22,7 @@ import java.nio.CharBuffer;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.logging.SimpleFormatter;
 
@@ -33,6 +34,8 @@ import android.R.string;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.hardware.usb.UsbConstants;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbInterface;
@@ -60,6 +63,7 @@ public class HelloJni extends Activity
 			FileOutputStream fos =  new FileOutputStream(SDPATH + "test.txt", true);;
 			fos.write( str.getBytes() );
 			fos.close();
+			
 		} catch (FileNotFoundException e) {
 			Log.i("zeng", "FileNotFoundException.");
 			e.printStackTrace();			
@@ -76,6 +80,9 @@ public class HelloJni extends Activity
 	private UsbDevice gUsbDevice;
 	private UsbInterface gUsbInterface;
 	private UsbDeviceConnection gUsbDeviceConnection;
+	private UsbEndpoint gInEp;
+	private UsbEndpoint gOutEp;
+	private int gHandleToNative;
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -141,14 +148,39 @@ public class HelloJni extends Activity
 		{
 			setLog("Current device hasn't permission.");
 			
-			PendingIntent pi;
+			PendingIntent mPendingIntentUsb;
+			mPendingIntentUsb = PendingIntent.getBroadcast(this, 0, new Intent(UsbManager.EXTRA_PERMISSION_GRANTED), 0);
+			gUsbManager.requestPermission(gUsbDevice, mPendingIntentUsb);
 			
-			gUsbManager.requestPermission(gUsbDevice, pi);
+			setLog("PendingIntent: " + mPendingIntentUsb);
+	
+			if (!gUsbManager.hasPermission(gUsbDevice) )
+			{
+				setLog("Gain usb permission failed.");
+				return;
+			}
+			setLog("Already gain usb permission.");	
 			
-			setLog("PendingIntent: " + pi);
 		}
 		else {
 			setLog("Current device has permission.");
+		}
+		
+		for (int i=0; i<gUsbInterface.getEndpointCount(); i++)
+		{
+			UsbEndpoint ep = gUsbInterface.getEndpoint(i);
+			setLog("UsbEndpoint: "+ep+" type: "+ep.getType()+" number: "+ep.getEndpointNumber());
+			switch (ep.getDirection()) {
+			case UsbConstants.USB_DIR_IN:
+				gInEp = ep;
+				break;
+			case UsbConstants.USB_DIR_OUT:
+				gOutEp = ep;
+				break;
+			default:
+				break;
+			}
+			
 		}
 		
 		
@@ -156,9 +188,48 @@ public class HelloJni extends Activity
 		gUsbDeviceConnection = gUsbManager.openDevice(gUsbDevice);
 		setLog("UsbDeviceConnection: "+gUsbDeviceConnection);
 		
-		String rawDesc = gUsbDeviceConnection.getRawDescriptors().toString();
-		setLog(rawDesc);
+		if ( !gUsbDeviceConnection.claimInterface(gUsbInterface, true) )
+		{
+			setLog("claimInterface failed.");
+			return;
+		}
 		
+		
+		byte []inBuf = new byte[1024];
+		inBuf[0] = 0x1d;
+		inBuf[1] = 0x53;
+		inBuf[2] = 0x4c;
+		inBuf[3] = 0x44;
+		
+		int ret = gUsbDeviceConnection.bulkTransfer(gOutEp, inBuf, 4, 0);
+		setLog("bulkTransfer ret: "+ret);
+		
+		
+		byte []outBuf = new byte[1024];
+		ret = gUsbDeviceConnection.bulkTransfer(gInEp, outBuf, outBuf.length, 3000);
+		setLog("outBuf: "+new String(outBuf));
+		
+		byte []rawDesc = new byte[1024];
+		rawDesc = gUsbDeviceConnection.getRawDescriptors();
+		String st = "";
+		for (byte i: rawDesc)
+		{
+			st = st + Integer.toHexString(i);
+		}		
+		setLog("rawDesc: "+st);
+		
+		byte []stdstatus = new byte[1024];
+		setLog("stdstatus length: "+stdstatus.length);
+//	    public int controlTransfer(int requestType, int request, int value,
+//	            int index, byte[] buffer, int length, int timeout)
+		ret = gUsbDeviceConnection.controlTransfer(0xa1, 00, 00, 00, stdstatus,  stdstatus.length, 500);
+		
+		setLog("ret: "+ret+"  std status: "+new String(stdstatus) );
+		setLog(stdstatus.toString());
+		
+		gHandleToNative = gUsbDeviceConnection.getFileDescriptor();
+		
+		setLog( dealwithUsb(gHandleToNative) );
 	}
 
 	
@@ -183,6 +254,10 @@ public class HelloJni extends Activity
      */
     public native String  unimplementedStringFromJNI();
 
+    //usb test
+    public native String dealwithUsb(int handle);
+    
+    
     public native String  testo(android.app.Activity obj);
     /* this is used to load the 'hello-jni' library on application
      * startup. The library has already been unpacked into

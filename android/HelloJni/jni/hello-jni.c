@@ -17,6 +17,7 @@
 #include <string.h>
 #include <jni.h>
 
+#include <stdio.h>
 /* This is a trivial JNI example where we use a native method
  * to return a new VM String. See the corresponding Java source
  * file located at:
@@ -66,16 +67,16 @@ jstring
 Java_com_example_hellojni_HelloJni_stringFromJNIandInt( JNIEnv* env,
                                                   jobject thiz , jint inInt)
 {
-//	int handle = inInt;
-//
-//	char str[50] = "hello";
-//
-//	//return str;
-//
-//	if (handle == 99)
-//		return (*env)->NewStringUTF(env, "Hello from jni and 99" );
-//	else
-//		return (*env)->NewStringUTF(env, "Hello from jni and not 99");
+	int handle = inInt;
+
+	char str[50] = "hello";
+
+	//return str;
+
+	if (handle == 99)
+		return (*env)->NewStringUTF(env, "Hello from jni and 99" );
+	else
+		return (*env)->NewStringUTF(env, "Hello from jni and not 99");
 
 
 	//
@@ -158,4 +159,58 @@ Java_com_example_hellojni_HelloJni_testo( JNIEnv* env,
 
 
 	//return "hello";
+}
+
+jstring
+Java_com_example_hellojni_HelloJni_dealwithUsb( JNIEnv* env,
+                                                  jobject thiz , jint inInt)
+{
+	int handle = inInt;
+
+	char str[50] = "hello";
+
+	//return str;
+
+	setLog(str);
+	if (handle == 99)
+		return (*env)->NewStringUTF(env, str );
+	else
+		return (*env)->NewStringUTF(env, str);
+
+
+	//
+	//jclass ClassJava;
+	//ClassJava = (*env)->FindClass(env, "com/example/hellojni/ClassJava");
+//	jclass ClassJava;
+//	ClassJava = (*env)->FindClass(env, "com/example/hellojni/ClassJava");
+//
+//
+//
+//	jmethodID constructmethod = (*env)->GetMethodID(env, ClassJava, "<init>", "()V");
+//	jobject mClassJava = (*env)->NewObject(env, ClassJava, constructmethod);
+//
+//
+//	jmethodID mmethod = (*env)->GetMethodID(env, ClassJava, "SayHello", "()Ljava/lang/String;");
+//
+//	jstring mtest;
+//	mtest = (*env)->CallObjectMethod(env, mClassJava, mmethod);
+//
+//	return mtest;
+
+
+	//return "hello";
+}
+
+
+void setLog(char *buf)
+{
+	FILE *fp = fopen("/sdcard/jnilog.txt", "w+");
+
+	if (fp != NULL)
+	{
+		fputs(buf, fp);
+		fflush(fp);
+		fclose(fp);
+	}
+	return;
 }
