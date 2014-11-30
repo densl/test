@@ -17,7 +17,14 @@
 #include <string.h>
 #include <jni.h>
 
+#include <fcntl.h>
 #include <stdio.h>
+
+#include <linux/usbdevice_fs.h>
+#include <sys/ioctl.h>
+
+void setLog(const char *fmt, ...);
+void setLogStr(char *buf);
 /* This is a trivial JNI example where we use a native method
  * to return a new VM String. See the corresponding Java source
  * file located at:
@@ -167,50 +174,81 @@ Java_com_example_hellojni_HelloJni_dealwithUsb( JNIEnv* env,
 {
 	int handle = inInt;
 
-	char str[50] = "hello";
-
+	int ret = 0;
+	int ret1 = 0;
+	char str[512] = "\x55\x53\x42\x43\x08\x40\xc6\x85\x00\x00\x00\x00\x00\x00\x06\x12\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+	char msg[1024] = {0};
 	//return str;
 
-	setLog(str);
-	if (handle == 99)
-		return (*env)->NewStringUTF(env, str );
-	else
-		return (*env)->NewStringUTF(env, str);
+	setLog("-----------");
+	setLog("dealwithUsb");
 
 
-	//
-	//jclass ClassJava;
-	//ClassJava = (*env)->FindClass(env, "com/example/hellojni/ClassJava");
-//	jclass ClassJava;
-//	ClassJava = (*env)->FindClass(env, "com/example/hellojni/ClassJava");
-//
-//
-//
-//	jmethodID constructmethod = (*env)->GetMethodID(env, ClassJava, "<init>", "()V");
-//	jobject mClassJava = (*env)->NewObject(env, ClassJava, constructmethod);
-//
-//
-//	jmethodID mmethod = (*env)->GetMethodID(env, ClassJava, "SayHello", "()Ljava/lang/String;");
-//
-//	jstring mtest;
-//	mtest = (*env)->CallObjectMethod(env, mClassJava, mmethod);
-//
-//	return mtest;
+	memset(msg, 0, 1024);
+	ret = usb_device_control_transfer_jni(handle, 0x12, 0, 0, 0, NULL, 0, 3000);
+	setLog("usb ctrl ret: %d, msg0: %X, msg: %s", ret, msg[0], msg);
+
+	setLog("str0: %X", str[0]);
+	ret = write(handle, str, 31);
+	setLog("write ret: %d, str[0]: %X, str: %s", ret, str[0], str);
+
+	ret = read(handle, msg, 512);
+	setLog("read ret: %d, msg0: %X, msg: %s", ret, msg[0], msg);
 
 
-	//return "hello";
+
+
+	//usb_device_control_transfer();
+
+
+
+	return (*env)->NewStringUTF(env, str);
 }
 
 
-void setLog(char *buf)
-{
-	FILE *fp = fopen("/sdcard/jnilog.txt", "w+");
 
-	if (fp != NULL)
-	{
-		fputs(buf, fp);
-		fflush(fp);
-		fclose(fp);
-	}
+int usb_device_control_transfer_jni(int fd, int requestType, int request, int value, int index, void* buffer, int length, unsigned int timeout)
+{
+	struct usbdevfs_ctrltransfer ctrl;
+	memset(&ctrl, 0, sizeof(ctrl));
+
+	ctrl.bRequestType = requestType;
+	ctrl.bRequest = request;
+	ctrl.wValue = value;
+	ctrl.wIndex = index;
+	ctrl.wLength = length;
+	ctrl.data = buffer;
+	ctrl.timeout = timeout;
+
+	return ioctl(fd, USBDEVFS_CONTROL, &ctrl);
+
+}
+void setLogStr(char *buf)
+{
+	int fp = open("/sdcard/jnilog.txt", O_RDWR | O_CREAT | O_APPEND);
+	int ret = 0;
+
+	if (fp < 0)
+		return;
+
+	ret = write(fp, buf, strlen(buf));
+	ret = write(fp, "\n", 1);
+	close(fp);
 	return;
+}
+
+void setLog(const char *fmt, ...)
+{
+	int ret = 0;
+	char msg[4096];
+	memset(msg, 0, 4096);
+
+	sprintf(msg, "%s: ", __TIME__);
+
+	va_list args; //single var
+	va_start(args, fmt);
+	ret = vsprintf(msg+strlen(msg), fmt, args);
+	va_end(args);
+
+	setLogStr(msg);
 }
