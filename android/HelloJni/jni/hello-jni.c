@@ -20,11 +20,15 @@
 #include <fcntl.h>
 #include <stdio.h>
 
+#include <errno.h>
 #include <linux/usbdevice_fs.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 void setLog(const char *fmt, ...);
 void setLogStr(char *buf);
+int usb_device_control_transfer_jni(int fd, int requestType, int request, int value, int index, void* buffer, int length, unsigned int timeout);
+int usb_device_bulk_transfer_jni(int fd, int endpoint, void* buffer, int length, unsigned int timeout);
 /* This is a trivial JNI example where we use a native method
  * to return a new VM String. See the corresponding Java source
  * file located at:
@@ -176,35 +180,64 @@ Java_com_example_hellojni_HelloJni_dealwithUsb( JNIEnv* env,
 
 	int ret = 0;
 	int ret1 = 0;
-	char str[512] = "\x55\x53\x42\x43\x08\x40\xc6\x85\x00\x00\x00\x00\x00\x00\x06\x12\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+	char str[1024] = {'1', '2','3','4'};
 	char msg[1024] = {0};
+	int len = 4;
 	//return str;
 
 	setLog("-----------");
-	setLog("dealwithUsb");
+	setLog("dealwithUsb, handle: %X", handle);
+
+
+
+
+//	fputs("hello", handle);
+
+
+//	ret = write(handle, str, 4);
+//	setLog("write ret: %d, str[0]: %X, str: %s, errno: %d", ret, str[0], str, errno);
+//
+//
+//	ret = write(1, "5678", len);
+//	setLog("write ret: %d, str[0]: %X, str: %s, errno: %d", ret, str[0], str, errno);
+//
+//
+//
+//	memset(msg, 0, 1024);
+//	ret = read(130, msg, 512);
+//	setLog("read ret: %d, msg0: %X, msg: %s, errno: %d", ret, msg[0], msg, errno);
 
 
 	memset(msg, 0, 1024);
-	ret = usb_device_control_transfer_jni(handle, 0x12, 0, 0, 0, NULL, 0, 3000);
-	setLog("usb ctrl ret: %d, msg0: %X, msg: %s", ret, msg[0], msg);
-
-	setLog("str0: %X", str[0]);
-	ret = write(handle, str, 31);
-	setLog("write ret: %d, str[0]: %X, str: %s", ret, str[0], str);
-
-	ret = read(handle, msg, 512);
-	setLog("read ret: %d, msg0: %X, msg: %s", ret, msg[0], msg);
-
-
-
+	ret = usb_device_control_transfer_jni(handle, 0xa1, 0, 0, 0, msg, 1000, 3000);
+	setLog("usb ctrl ret: %d, msg0: %X, msg: %s, error: %d", ret, msg[1], msg+1, errno);
 
 	//usb_device_control_transfer();
 
+	memset(msg, 0, 1024);
+	ret = usb_device_bulk_transfer_jni(handle, 1, "\x1d\x53\x4c\x44", 4, 3000);
+	setLog("usb bulk ret: %d", ret);
 
+	memset(msg, 0, 1024);
+	ret = usb_device_bulk_transfer_jni(handle, 130, msg, 512, 8000);
+	setLog("usb bulk ret: %d, msg5: %X, msg: %s, errno %d", ret, msg[5], msg+6, errno);
+//	memset(msg, 0, 1024);
+//	ret = usb_device_bulk_transfer_jni(handle, 130, msg, 512, 8000);
+//	setLog("usb bulk ret: %d, msg7: %X, msg: %s", ret, msg[7], msg);
 
 	return (*env)->NewStringUTF(env, str);
 }
 
+int usb_device_bulk_transfer_jni(int fd, int endpoint, void* buffer, int length, unsigned int timeout)
+{
+	struct usbdevfs_bulktransfer ctrl;
+	memset(&ctrl, 0, sizeof(ctrl));
+	ctrl.ep = endpoint;
+	ctrl.len = length;
+	ctrl.data = buffer;
+	ctrl.timeout = timeout;
+	return ioctl(fd, USBDEVFS_BULK, &ctrl);
+}
 
 
 int usb_device_control_transfer_jni(int fd, int requestType, int request, int value, int index, void* buffer, int length, unsigned int timeout)
