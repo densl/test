@@ -49,7 +49,13 @@ import android.hardware.usb.UsbEndpoint;
 
 public class HelloJni extends Activity
 {
-	private static String TAG = "zeng";
+    static {
+        System.loadLibrary("hello-jni");
+        setLog("This is static load library.");
+    }
+		
+    //usb jni test
+	private native String dealwithUsb(int handle, int inep, int outep); 
 	private static final void setLog(String msg)
 	{
 		Log.i("zeng", msg+ "  in HelloJni class");
@@ -74,29 +80,28 @@ public class HelloJni extends Activity
 		
 //		Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
 	}
-    /** Called when the activity is first created. */
-	
+    
+   	
+    private static String TAG = "zeng";
 	private UsbManager gUsbManager;
 	private UsbDevice gUsbDevice;
 	private UsbInterface gUsbInterface;
 	private UsbDeviceConnection gUsbDeviceConnection;
 	private UsbEndpoint gInEp;
 	private UsbEndpoint gOutEp;
-	private int gHandleToNative;
+	//native use
+	private int gHandleNative;
+	private int gInEpNative;
+	private int gOutEpNative;
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setLog("OnCreate.");
         
-        /* Create a TextView and set its content.
-         * the text is retrieved by calling a native
-         * function.
-         */
         TextView  tv = new TextView(this);
-        tv.setText( stringFromJNI() );
-        setContentView(tv);
-     
+        tv.setText( "Test" );
+        setContentView(tv);    
     }
     
     
@@ -105,109 +110,9 @@ public class HelloJni extends Activity
     	super.onStart();
     	
     	setLog("It is in onStart.");
-    	
-    	//dealwithUsb(3);
     	OpenUsb();
     }
     
-    /* A native method that is implemented by the
-     * 'hello-jni' native library, which is packaged
-     * with this application.
-     */
-    public native String  stringFromJNI();
-
-    //Java_com_example_hellojni_HelloJni_stringFromJNIandInt
-    public native String stringFromJNIandInt(int x);
-    /* This is another native method declaration that is *not*
-     * implemented by 'hello-jni'. This is simply to show that
-     * you can declare as many native methods in your Java code
-     * as you want, their implementation is searched in the
-     * currently loaded native libraries only the first time
-     * you call them.
-     *
-     * Trying to call this function will result in a
-     * java.lang.UnsatisfiedLinkError exception !
-     */
-    public native String  unimplementedStringFromJNI();
-
-    //usb test
-    public native String dealwithUsb(int handle);
-    
-    
-    public native String  testo(android.app.Activity obj);
-    /* this is used to load the 'hello-jni' library on application
-     * startup. The library has already been unpacked into
-     * /data/data/com.example.hellojni/lib/libhello-jni.so at
-     * installation time by the package manager.
-     */
-    static {
-        System.loadLibrary("hello-jni");
-        setLog("This is static load library.");
-    }
-    
-    
-    public void OpenUsbxxx()
-	{
-		Log.i(TAG, "This is in OpenUsb().");
-		// get usb manager ********************************
-		UsbManager mManager = (UsbManager) getSystemService(Context.USB_SERVICE);
-		
-		// get device list ********************************
-		HashMap<String, UsbDevice> mDeviceList = mManager.getDeviceList(); 
-	
-		int maxCount;
-		maxCount = mDeviceList.size();
-		
-		Toast.makeText(getApplicationContext(), "max count of usb device is "+maxCount, Toast.LENGTH_SHORT).show();
-		
-		//int index;
-		//UsbInterface mInterface = (UsbInterface)mDeviceList.get(0);
-		for (UsbDevice mDevice : mDeviceList.values()) {	
-			int count = mDevice.getInterfaceCount();
-			Toast.makeText(getApplicationContext(), "max usb interface is "+count, Toast.LENGTH_SHORT).show();
-			
-			if (count == 8)
-				continue;
-			
-			for (int index=0; index < count; index++)
-			{
-				UsbInterface mInterface = mDevice.getInterface(index);
-				
-				Log.i("zeng", "interface class is "+mInterface.getInterfaceClass() +
-						"#interface sub class#" + mInterface.getInterfaceSubclass() + 
-						"#interface protocol#" + mInterface.getInterfaceProtocol() + 
-						"#endpoint count" + mInterface.getEndpointCount() +" string is " +
-						mInterface.toString());
-				
-
-						
-				
-				//mInterface.describeContents
-				
-				UsbDeviceConnection mConnection =  mManager.openDevice(mDevice);
-				
-				mConnection.claimInterface(mInterface, false);
-				
-				byte []buffer = "hello".getBytes();
-				
-				mConnection.bulkTransfer(mInterface.getEndpoint(0), buffer, 5, 1000);
-				
-			}
-			
-			Log.i("zeng", mDevice.toString());
-			Toast.makeText(getApplicationContext(), "UsbDevice:: "+mDevice.toString(), Toast.LENGTH_LONG).show();
-			
-
-			
-			//UsbDeviceConnection mConnection =  mManager.openDevice(mDevice);
-			
-		}
-		
-		Log.i(TAG, "End OpenUsb().");
-		
-	}
-	
-	
 
     public void OpenUsb() {
     	setLog("It is in OpenUsb function.");
@@ -275,6 +180,7 @@ public class HelloJni extends Activity
     		setLog("Current device has permission.");
     	}
     	
+    	//get endpoint
     	for (int i=0; i<gUsbInterface.getEndpointCount(); i++)
     	{
     		UsbEndpoint ep = gUsbInterface.getEndpoint(i);
@@ -292,96 +198,40 @@ public class HelloJni extends Activity
     		
     	}
     	
-    	
-    	//
+    	//get connection
     	gUsbDeviceConnection = gUsbManager.openDevice(gUsbDevice);
     	setLog("UsbDeviceConnection: "+gUsbDeviceConnection);
-    	
+
     	if ( !gUsbDeviceConnection.claimInterface(gUsbInterface, true) )
     	{
     		setLog("claimInterface failed.");
     		return;
     	}
     	
-    	//jni part
-    	setLog( dealwithUsb(gHandleToNative) );
-    	if (true )
-    		return;
-    	//
     	
-    	//data transfer
-    	byte []inBuf = new byte[1024];
-    	inBuf[0] = 0x1d;
-    	inBuf[1] = 0x53;
-    	inBuf[2] = 0x4c;
-    	inBuf[3] = 0x44;
+    	//---------------------------------------------------------------------------------
+    	// data/command transfer part
+    	//control transfer
+    	int ret = 0;
+    	byte []msg = new byte[1024];
+    	ret = gUsbDeviceConnection.controlTransfer(0xa1, 00, 00, 00, msg,  msg.length, 500);
+    	setLog("ctrl ret: "+ret+"  msg: "+new String(msg) );
     	
-    	int ret = gUsbDeviceConnection.bulkTransfer(gOutEp, inBuf, 4, 0);
-    	setLog("bulkTransfer ret: "+ret);
+    	//write
+    	msg = "This is a test from java code.".getBytes();
+    	ret = gUsbDeviceConnection.bulkTransfer(gOutEp, msg, msg.length, 500);
     	
     	
-    	byte []outBuf = new byte[1024];
-    	ret = gUsbDeviceConnection.bulkTransfer(gInEp, outBuf, outBuf.length, 3000);
-    	setLog("outBuf: "+new String(outBuf));
+    	// env part
+    	//set jni env
+    	gHandleNative = gUsbDeviceConnection.getFileDescriptor();
+    	gInEpNative = gInEp.getAddress();
+    	gOutEpNative = gOutEp.getAddress();   	
+    	setLog("handle: "+gHandleNative+"  In ep: "+gInEpNative+"  Out ep: "+gOutEpNative);
     	
-    	byte []rawDesc = new byte[1024];
-    	rawDesc = gUsbDeviceConnection.getRawDescriptors();
-    	String st = "";
-    	for (byte i: rawDesc)
-    	{
-    		st = st + Integer.toHexString(i);
-    	}		
-    	setLog("rawDesc: "+st);
-    	
-    	byte []stdstatus = new byte[1024];
-    	setLog("stdstatus length: "+stdstatus.length);
-//        public int controlTransfer(int requestType, int request, int value,
-//                int index, byte[] buffer, int length, int timeout)
-    	ret = gUsbDeviceConnection.controlTransfer(0xa1, 00, 00, 00, stdstatus,  stdstatus.length, 500);
-    	
-    	setLog("ret: "+ret+"  std status: "+new String(stdstatus) );
-    	setLog(stdstatus.toString());
-    	
-    	gHandleToNative = gUsbDeviceConnection.getFileDescriptor();
-    	
+ 	
+    	String retJni = dealwithUsb(gHandleNative, gInEpNative, gOutEpNative);
+    	setLog( retJni );
     	
     }
-
-
-    
-
-
-
 }
-
-//if ( mUsbDevice.getDeviceClass() == 7 && mUsbDevice.getDeviceSubclass() == 1 && mUsbDevice.getDeviceProtocol() == 2)
-//{
-//	//found device
-//	gUsbDevice = mUsbDevice;
-//}
-
-//define in interface
-//if ( mUsbDevice.getDeviceClass() == 0 && mUsbDevice.getDeviceSubclass() == 0 && mUsbDevice.getDeviceProtocol() == 0)
-//{
-
-
-//Activity topassActivity = this;
-//tv.setText( testo(topassActivity) );
-//setContentView(tv);
-
-
-//Log.i(TAG, stringFromJNIandInt(9));
-//
-//
-//
-//OpenUsb();
-//
-//
-//UsbCore usbCore = new UsbCore();
-//usbCore.OpenUsb();
-
-//Toast.makeText(getApplicationContext(), "interface class is "+mInterface.getInterfaceClass() +
-//		"#interface sub class#" + mInterface.getInterfaceSubclass() + 
-//		"#interface protocol#" + mInterface.getInterfaceProtocol() + 
-//		"#endpoint count" + mInterface.getEndpointCount() +" string is " +
-//		mInterface.toString(), Toast.LENGTH_LONG).show();
