@@ -31,3 +31,15 @@ LOCAL_SRC_FILES := local-usb.c
 
 include $(BUILD_SHARED_LIBRARY)
 
+################################
+### share library test
+include $(CLEAR_VARS)
+
+LOCAL_LDLIBS := -llog
+
+LOCAL_MODULE    := native_lib
+LOCAL_SRC_FILES := native_lib.c
+
+include $(BUILD_SHARED_LIBRARY)
+
+
