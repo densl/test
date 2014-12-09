@@ -54,6 +54,10 @@ Java_com_example_hellojni_HelloJni_dealwithUsb( JNIEnv* env,
 	ret = usb_device_control_transfer_jni(handle, 0xa1, 0, 0, 0, msg, 1000, 3000);
 	setLog("usb ctrl ret: %d, msg0: %X, msg: %s, error: %d", ret, msg[1], msg+1, errno);
 
+	//device id
+	memset(msg, 0, 1024);
+	ret = usb_device_control_transfer_jni(handle, 0x80, 0, 0, 0, msg, 1000, 3000);
+	setLog("usb ctrl ret: %d, msg0: %X, msg: %s, error: %d", ret, msg[1], msg, errno);
 
 	//write data
 	memset(msg, 0, 1024);
@@ -146,3 +150,6 @@ Java_com_example_hellojni_HelloJni_stringFromJNIandInt( JNIEnv* env,
 
 	return mtest;
 }
+
+///////////
+

@@ -20,4 +20,14 @@ LOCAL_MODULE    := hello-jni
 LOCAL_SRC_FILES := hello-jni.c
 
 include $(BUILD_SHARED_LIBRARY)
-#include $(BUILD_STATIC_LIBRARY)
+
+
+################################
+### local usb part
+include $(CLEAR_VARS)
+
+LOCAL_MODULE    := local-usb
+LOCAL_SRC_FILES := local-usb.c
+
+include $(BUILD_SHARED_LIBRARY)
+

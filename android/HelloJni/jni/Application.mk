@@ -1,2 +1,2 @@
 APP_ABI := all
-APP_MODULES := hello-jni
+##APP_MODULES := hello-jni
