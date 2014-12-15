@@ -16,6 +16,7 @@
 void setLog(const char *fmt, ...);
 void setLogStr(char *buf);
 
+#define JNI_CLASS_STR "com/example.hellojni.HelloJni"
 #define TAG "zeng"
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
@@ -40,6 +41,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 //	classz = (*env)->GetSuperclass()
 
 
+	registerNatives(env);
 
 	return JNI_VERSION_1_4;
 

@@ -15,7 +15,6 @@
  */
 package com.example.hellojni;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.CharBuffer;
@@ -30,6 +29,7 @@ import java.util.logging.SimpleFormatter;
 import javax.xml.transform.Templates;
 
 import com.study.common.LocalUsb;
+import com.study.common.M;
 
 
 
@@ -71,40 +71,20 @@ import android.hardware.usb.UsbEndpoint;
 
 public class HelloJni extends Activity
 {
+	private static final M m = new M("HelloJni");
     static {
         System.loadLibrary("hello-jni");
         
-        setLog("This is static load library.");
+        
+        m.setLog("This is static load library.");
 
+        m.setLog( m.directory("zz") );
     }
 		
     
     //usb jni test
 	private native String dealwithUsb(int handle, int inep, int outep); 
-	private static final void setLog(String msg)
-	{
-		Log.i("zeng", msg+ "  in HelloJni class");
-		//
 
-		String SDPATH = Environment.getExternalStorageDirectory().getPath() + "/";
-		SimpleDateFormat gStamp = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.ENGLISH);
-		
-		String str = gStamp.format(new Date()) + " HelloJni: " + msg + "\n";
-		try {
-			FileOutputStream fos =  new FileOutputStream(SDPATH + "test.txt", true);;
-			fos.write( str.getBytes() );
-			fos.close();
-			
-		} catch (FileNotFoundException e) {
-			Log.i("zeng", "FileNotFoundException.");
-			e.printStackTrace();			
-		} catch (IOException e) {
-			Log.i("zeng", "IOException.");
-			e.printStackTrace();
-		}
-		
-//		Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-	}
     
    	
     private static String TAG = "zeng";
@@ -126,16 +106,12 @@ public class HelloJni extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        setLog("OnCreate.");
+        m.setLog("OnCreate.");
         
         setContentView(R.layout.main_layout);
         
-        //grs.
         gtv = new TextView(this);
-
-//        TextView  tv = new TextView(this);
-//        tv.setText( "Test" );
-//        setContentView(tv);    
+  
     }
     
     
@@ -143,7 +119,7 @@ public class HelloJni extends Activity
     protected void onStart() {
     	super.onStart();
     	
-    	setLog("It is in onStart.");
+    	m.setLog("It is in onStart.");
     	
     	
     	Button mTest = (Button)findViewById(R.id.test);
@@ -155,7 +131,7 @@ public class HelloJni extends Activity
 				Message msg = Message.obtain(mHandler, 1);
 				msg.obj = "onClick Message";
 				mHandler.sendMessage(msg);
-				setLog("onClick.");
+				m.setLog("onClick.");
 			}
 		});
     	
@@ -169,10 +145,10 @@ public class HelloJni extends Activity
     
     	
     	
-    	OpenUsb();
+    	//OpenUsb();
     	//getBuildInfo();
     	//getPhoneInfo();
-    	//bttest();
+    	bttest();
     	
     	
     	registerReceiver(mBroadcastReceiver, initIntentFilter());
@@ -182,9 +158,9 @@ public class HelloJni extends Activity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     	super.onActivityResult(requestCode, resultCode, data);
-    	setLog("It is in onActivityResult");
+    	m.setLog("It is in onActivityResult");
     	
-    	setLog("requestCode: "+requestCode+" resultCode: "+resultCode+" intent: "+data);
+    	m.setLog("requestCode: "+requestCode+" resultCode: "+resultCode+" intent: "+data);
     	
     	switch (requestCode) {
 		case 0x1:
@@ -200,29 +176,37 @@ public class HelloJni extends Activity
     private IntentFilter initIntentFilter() {
     	IntentFilter mFilter = new IntentFilter();
     	mFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+    	mFilter.addAction(BluetoothDevice.ACTION_FOUND);
+    	
 		return mFilter;
 	}
     private final BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver(){
     	public void onReceive(Context context, Intent intent) {
     		final String action = intent.getAction();
-    		setLog("onReceive Action: "+action);
+    		m.setLog("onReceive Action: "+action);
     		
     		if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action))
     		{
     			int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
-    			setLog("extra state: "+Integer.valueOf(state).toString() );
+    			m.setLog("extra state: "+Integer.valueOf(state).toString() );
+    		}
+    		
+    		if (BluetoothDevice.ACTION_FOUND.equals(action))
+    		{
+    			BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+    			m.setLog("BT action found, name: "+device.getName()+" address: "+device.getAddress() );
     		}
     	}
     };
     
     private void bttest()
     {
-    	setLog("It is in bluetooth test");
+    	m.setLog("It is in bluetooth test");
     	
     	BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     	if (mBluetoothAdapter == null)
     	{
-    		setLog("BluetoothAdapter is null");
+    		m.setLog("BluetoothAdapter is null");
     		return;
     	}
 
@@ -234,7 +218,7 @@ public class HelloJni extends Activity
     	}
     	
     	//show bluetooth host name and address 
-    	setLog("Bt host name: "+mBluetoothAdapter.getName()+" Host address: "+mBluetoothAdapter.getAddress());
+    	m.setLog("Bt host name: "+mBluetoothAdapter.getName()+" Host address: "+mBluetoothAdapter.getAddress());
     	
     	// bonded device
     	Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
@@ -243,13 +227,15 @@ public class HelloJni extends Activity
     	{
     		BluetoothDevice mBluetoothDevice = mIterator.next();
     		
-    		setLog("Bonded BT: "+mBluetoothDevice.getName()+" addr: "+mBluetoothDevice.getAddress() );
+    		m.setLog("Bonded BT: "+mBluetoothDevice.getName()+" addr: "+mBluetoothDevice.getAddress() );
     	}
     	
+    	//discoverable
+    	Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+    	discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 30);
+    	startActivityForResult(discoverableIntent, 0x2);
+    	
     	//
-    	
-    	
-    	
     	
     	
 
@@ -269,7 +255,7 @@ public class HelloJni extends Activity
     }
     private void getPhoneInfo()
     {
-    	setLog("It is in getPhoneInfo.");
+    	m.setLog("It is in getPhoneInfo.");
     	
     	TelephonyManager phoneManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
     	
@@ -321,7 +307,7 @@ public class HelloJni extends Activity
     
     private void getBuildInfo()
     {
-    	setLog("It is in getBuildInfo");	
+    	m.setLog("It is in getBuildInfo");	
        	
     	String board = Build.BOARD;
     	String bootloader = Build.BOOTLOADER;
@@ -372,19 +358,14 @@ public class HelloJni extends Activity
     	super.onDestroy();
     }
     
-    
-//    private final Handler mHandler 
-//    private final Messenger mMesseger= new Messenger( new MHandler() ); 
-//    private class MHandler extends Handler{
-//    	
-//    }
+
 	private final Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
         	
-        	setLog("handleMessage");
-        	setLog("msg.what: " + msg.what);
-        	setLog("msg.obj: "+ msg.obj);
+        	m.setLog("handleMessage");
+        	m.setLog("msg.what: " + msg.what);
+        	m.setLog("msg.obj: "+ msg.obj);
         	
             switch (msg.what) {
                 case 1:
@@ -405,23 +386,23 @@ public class HelloJni extends Activity
     private Messenger mMessager = new Messenger(mHandler);
     
     private void OpenUsb() {
-    	setLog("It is in OpenUsb function.");
+    	m.setLog("It is in OpenUsb function.");
 
     	UsbManager mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
     	gUsbManager = mUsbManager;
     	
     	//find usb device
     	HashMap<String, UsbDevice> mDeviceList = mUsbManager.getDeviceList();
-    	setLog("UsbDevices: " + mDeviceList.size());
+    	m.setLog("UsbDevices: " + mDeviceList.size());
     	for (UsbDevice mUsbDevice : mDeviceList.values()) {
     		int maxUsbInterface = mUsbDevice.getInterfaceCount();
 
-    		setLog("UsbDevice: " + mUsbDevice);
-    		setLog("Max Device interface is " + maxUsbInterface);
+    		m.setLog("UsbDevice: " + mUsbDevice);
+    		m.setLog("Max Device interface is " + maxUsbInterface);
     		for (int i = 0; i < maxUsbInterface; i++) {
     			UsbInterface mUsbInterface = mUsbDevice.getInterface(i);
 
-    			setLog("UsbInterface " + i + ": " + mUsbInterface);
+    			m.setLog("UsbInterface " + i + ": " + mUsbInterface);
     			if (mUsbInterface.getInterfaceClass() == 7
     					&& mUsbInterface.getInterfaceSubclass() == 1
     					&& mUsbInterface.getInterfaceProtocol() == 2) {
@@ -444,37 +425,37 @@ public class HelloJni extends Activity
     	//gain permission
     	if (gUsbDevice == null || gUsbInterface == null)
     	{
-    		setLog("Failed get devices.");
+    		m.setLog("Failed get devices.");
     		return;
     	}
     	
     	if ( gUsbManager.hasPermission(gUsbDevice) )
     	{
-    		setLog("Current device hasn't permission.");
+    		m.setLog("Current device hasn't permission.");
     		
     		PendingIntent mPendingIntentUsb;
     		mPendingIntentUsb = PendingIntent.getBroadcast(this, 0, new Intent(UsbManager.EXTRA_PERMISSION_GRANTED), 0);
     		gUsbManager.requestPermission(gUsbDevice, mPendingIntentUsb);
     		
-    		setLog("PendingIntent: " + mPendingIntentUsb);
+    		m.setLog("PendingIntent: " + mPendingIntentUsb);
 
     		if (!gUsbManager.hasPermission(gUsbDevice) )
     		{
-    			setLog("Gain usb permission failed.");
+    			m.setLog("Gain usb permission failed.");
     			return;
     		}
-    		setLog("Already gain usb permission.");	
+    		m.setLog("Already gain usb permission.");	
     		
     	}
     	else {
-    		setLog("Current device has permission.");
+    		m.setLog("Current device has permission.");
     	}
     	
     	//get endpoint
     	for (int i=0; i<gUsbInterface.getEndpointCount(); i++)
     	{
     		UsbEndpoint ep = gUsbInterface.getEndpoint(i);
-    		setLog("UsbEndpoint: "+ep+" type: "+ep.getType()+" number: "+ep.getEndpointNumber());
+    		m.setLog("UsbEndpoint: "+ep+" type: "+ep.getType()+" number: "+ep.getEndpointNumber());
     		switch (ep.getDirection()) {
     		case UsbConstants.USB_DIR_IN:
     			gInEp = ep;
@@ -490,11 +471,11 @@ public class HelloJni extends Activity
     	
     	//get connection
     	gUsbDeviceConnection = gUsbManager.openDevice(gUsbDevice);
-    	setLog("UsbDeviceConnection: "+gUsbDeviceConnection);
+    	m.setLog("UsbDeviceConnection: "+gUsbDeviceConnection);
 
     	if ( !gUsbDeviceConnection.claimInterface(gUsbInterface, true) )
     	{
-    		setLog("claimInterface failed.");
+    		m.setLog("claimInterface failed.");
     		return;
     	}
     	
@@ -505,11 +486,11 @@ public class HelloJni extends Activity
     	int ret = 0;
     	byte []msg = new byte[1024];
     	ret = gUsbDeviceConnection.controlTransfer(0xa1, 00, 00, 00, msg,  msg.length, 500);
-    	setLog("ctrl ret: "+ret+"  msg: "+new String(msg) );
+    	m.setLog("ctrl ret: "+ret+"  msg: "+new String(msg) );
     	
-//    	//write
-//    	msg = "This is a test from java code.".getBytes();
-//    	ret = gUsbDeviceConnection.bulkTransfer(gOutEp, msg, msg.length, 500);
+    	//write
+    	msg = "This is a test from java code.".getBytes();
+    	ret = gUsbDeviceConnection.bulkTransfer(gOutEp, msg, msg.length, 500);
     	
     	
     	// env part
@@ -517,24 +498,24 @@ public class HelloJni extends Activity
     	gHandleNative = gUsbDeviceConnection.getFileDescriptor();
     	gInEpNative = gInEp.getAddress();
     	gOutEpNative = gOutEp.getAddress();   	
-    	setLog("handle: "+gHandleNative+"  In ep: "+gInEpNative+"  Out ep: "+gOutEpNative);
+    	m.setLog("handle: "+gHandleNative+"  In ep: "+gInEpNative+"  Out ep: "+gOutEpNative);
     	
  	
     	// Test local usb
     	//#####################################################################
         ret = LocalUsb.nsetupEnv(gHandleNative, gInEpNative, gOutEpNative);
-        setLog("nsetupEnv ret: "+ret);
+        m.setLog("nsetupEnv ret: "+ret);
         ret = LocalUsb.ngetStatus();
-        setLog("ngetStatus ret: "+ret); 
+        m.setLog("ngetStatus ret: "+ret); 
         
         byte[] buf = "hello".getBytes();
         ret = LocalUsb.nwrite(buf, buf.length, 3000);
-        setLog("nwrite ret: "+ret);
+        m.setLog("nwrite ret: "+ret);
         LocalUsb.nclose();
         //##################################################################### 
 
-//    	String retJni = dealwithUsb(gHandleNative, gInEpNative, gOutEpNative);
-//    	setLog( retJni );
+    	String retJni = dealwithUsb(gHandleNative, gInEpNative, gOutEpNative);
+    	m.setLog( retJni );
     	
     }
     

@@ -2,7 +2,7 @@
  * local-usb.c
  *
  *  Created on: 2014-12-8
- *      Author: study
+ *      Author: zeng
  */
 
 #include <string.h>
