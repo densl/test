@@ -26,3 +26,19 @@
 
 ## 替换当前行所有 old 为 new
 	:s/old/new/g
+
+## 安装Ctags
+1.进入源代码目录执行 ./configure
+2.执行 make && make install
+3.在 ~/.vimrc 增加一行 map <C-F12> :!ctags -R --c++-kinds=+p --fields=+ias --extra=+q .<CR>
+4. ctrl-] 跳转到光标所在符号的定义
+5. ctrl-t 回到上次跳转前的位置
+6. 增加一行到vimrc:   set tags=tags;
+## 安装Taglist
+1.解压到~./vim目录，无则新建一个
+2.在doc目录执行命令 "helptags ."
+3.在vimrc增加	
+	let Tlist_Show_One_File=1  
+	let Tlist_Exit_OnlyWindow=1
+	let Tlist_Use_Right_Window=1
+	let Tlist_Ctags_Cmd='/usr/local/bin/ctags'
