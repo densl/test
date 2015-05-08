@@ -1,0 +1,16 @@
+1.修改配置文件
+sudo vim /etc/network/interfaces
+
+2.添加以下内容
+auto eth0      #设置自动启动eth0接口
+iface eth0 inet static    #配置静态ip
+address 192.168.1.11      #ip地址
+netmask 255.255.255.0     #子网掩码
+gateway 192.168.1.1       #网关
+
+3.修改DNS
+sudo vim /etc/resolve.conf
+nameserver 8.8.8.8        #当地dns服务器
+
+4.重启网络，使配置生效
+sudo /etc/init.d/networking restart
