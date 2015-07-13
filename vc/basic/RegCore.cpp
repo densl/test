@@ -105,3 +105,52 @@ BOOL RegCore::uGetClassKey(LPGUID devGuid, PHKEY phKey)
 //	return m_ErrorCode;
 //}
 
+
+
+static DWORD getRegValue(LPCTSTR keyName, LPCTSTR keyValue, LPVOID regValue, LPDWORD len) 
+{
+	DWORD ret = 0;
+
+	//open key
+	HKEY hkey;
+	ret = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyName, 0, KEY_READ, &hkey);
+	if ( ERROR_SUCCESS != ret )
+	{
+		return ret;
+	}
+
+	ret = RegQueryValueEx(heky, keyValue, NULL, NULL, (BYTE*)regValue, len);	RegCloseKey(hkey);
+	return ret;
+}
+
+static DWORD getRegList(LPCTSTR keyName, CString& keyList, LPDWORD count)
+{
+	DWORD ret = 0;
+	HKEY hkey;
+	ret = RegOpenKeyEx( HKEY_LOCAL_MACHINE, keyName, 0, KEY_READ, &hkey);
+	if ( ERROR_SUCCESS != ret )
+	{
+		return ret;
+	}
+
+	keyList.Empty();
+	DWORD keyCount = 0;
+	char temp[512] = {0};
+	DWORD retLen = 512;
+	for (int i=0;;i++)
+	{
+		retLen = 512;
+		memset(temp, 0, 512);
+		ret = RegEnumKeyEx(hkey, i, temp, &retLen, NULL, NULL, NULL, NULL);
+		if ( ERROR_SUCCESS != ret ) break;
+
+		keyCount++;
+		keyList.Append(temp);
+		keyList.Append(";");
+
+	}//end for
+
+	*count = keyCount;
+	return ( keyCount > 0) ? ERROR_SUCCESS : ret;
+}
+
