@@ -17,3 +17,11 @@ grub rescue> insmod /grub/normal.mod
 
 sudo update-grub
 sudo grub-install --root-directory=/mnt /dev/sda
+
+
+## grub4dos
+
+title Install Ubuntu
+root (hd0,0)
+kernel (hd0,0)/vmlinuz boot=casper iso-scan/filename=/ubuntu.iso ro quiet splash
+initrd (hd0,0)/initrd.lz
