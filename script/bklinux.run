@@ -7,8 +7,8 @@ bktime=`date | \
 
 echo $bktime
 
-tar cvfpj ~/sk/backup/backup$bktime.tar.gz \
+tar cvfpj /media/sk/backup/backup$bktime.tar.gz \
   --exclude=/dev --exclude=/sys --exclude=/mnt --exclude=/proc \
   --exclude=/lost+found --exclude=/media --exclude=/cdrom \
-  --exclude=/tmp /
+  --exclude=/tmp --exclude=/var --exclude=/sbin --exclude=/run /
 
